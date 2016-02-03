@@ -3,18 +3,14 @@
 # Sets a configuration key in Gnome's GSettings registry.
 #
 define gnome::gsettings(
-  $schema,
-  $key,
-  $value,
-  $directory = '/usr/share/glib-2.0/schemas',
-  $priority  = '25',
+  $user   = 'root',
+  $schema = undef,
+  $key    = undef,
+  $value  = undef,
 ) {
-  file { "${directory}/${priority}_${name}.gschema.override":
-    content => "[${schema}]\n  ${key} = ${value}\n",
-  }
-  ~>
-  exec { "change-${schema}-${key}":
-    command     => "/usr/bin/glib-compile-schemas ${directory}",
-    refreshonly => true,
+  exec { "gsettings: change-${schema}-${key} to ${value} for user ${user}":
+    user    => $user,
+    command => "/usr/bin/gsettings set ${schema} ${key} \"${value}\"",
+    unless  => "/usr/bin/gsettings get ${schema} ${key} | grep -qF \"${value}\" ",
   }
 }
